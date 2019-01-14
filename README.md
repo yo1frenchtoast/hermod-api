@@ -3,7 +3,7 @@
 Monitoring actions for RouterOS netwatch
 
 https://en.wikipedia.org/wiki/Herm%C3%B3%C3%B0r
-Hermóðr the Brave (Old Norse "war-spirit";[1] anglicized as Hermod) is a figure in Norse mythology, a son of the god Odin. He is often considered the messenger of the gods.
+`Hermóðr the Brave (Old Norse "war-spirit";[1] anglicized as Hermod) is a figure in Norse mythology, a son of the god Odin. He is often considered the messenger of the gods.`
 
 ## Getting started
 
