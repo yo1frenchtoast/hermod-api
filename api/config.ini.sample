@@ -1,0 +1,13 @@
+[API]
+host = 0.0.0.0
+port = 5000
+url = hermod-api.domain.tld
+protocol = http
+log_file = hermod-api.log
+
+[SMTP]
+server=smtp.domain.tld
+port=587
+use_tls=yes
+user=admin@domain.tld
+password=mySup3r53cureP455w0rd

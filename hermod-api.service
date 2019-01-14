@@ -1,0 +1,10 @@
+[Unit]
+Description=hermod - RouterOS notification API
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python /opt/hermod-api/api/api.py
+WorkingDirectory=/opt/hermod-api/api/
+
+[Install]
+WantedBy=multi-user.target

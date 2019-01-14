@@ -1,0 +1,4 @@
+configparser==3.5.0
+Flask==1.0.2
+Flask-RESTful==0.3.6
+ovh==0.4.5
