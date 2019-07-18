@@ -1,5 +1,5 @@
-requests==2.12.4
-paramiko==2.0.0
+requests>=2.20.0
+paramiko>=2.0.9
 Flask_RESTful==0.3.6
 ovh==0.4.5
 Flask==1.0.2
