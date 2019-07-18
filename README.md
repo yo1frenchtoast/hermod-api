@@ -25,6 +25,16 @@ systemctl enable hermod-api.service
 service hermod-api.service start
 ```
 
+### Docker
+
+```
+docker build -t hermod-api .
+```
+
+```
+docker run -it -v /data/hermod-api/config.ini:/usr/src/app/api/config.ini --name hermod-api hermod-api
+```
+
 ### Configuration
 sample
 ```
