@@ -35,6 +35,12 @@ docker build -t hermod-api .
 docker run -it -v /data/hermod-api/config.ini:/usr/src/app/api/config.ini --name hermod-api hermod-api
 ```
 
+or 
+
+```
+docker-compose up -d
+```
+
 ### Configuration
 sample
 ```
