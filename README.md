@@ -32,7 +32,7 @@ docker build -t hermod-api .
 ```
 
 ```
-docker run -d -p 5000:5000 -v /data/hermod-api/config.ini:/usr/src/app/api/config.ini -v /data/hermod-api/ovh.conf:/usr/src/app/api/ovh.conf -v /data/hermod-api/data.db:/usr/src/app/api/data.db --name hermod-api hermod-api
+docker run -d -p 5000:5000 -v /data/hermod-api/config.ini:/usr/src/app/api/config.ini -v /data/hermod-api/ovh.conf:/usr/src/app/api/ovh.conf -v /data/hermod-api/data.db:/usr/src/app/api/data.db --restart unless-stopped --name hermod-api hermod-api
 ```
 
 ### Configuration
