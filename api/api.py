@@ -3,50 +3,66 @@
 import json
 import datetime
 import configparser
+from rq import Queue
+from redis import Redis
 from flask import Flask, json
 from flask_restful import Api, Resource, reqparse, inputs
 
-from dbdriver import Database
-from sms import Sms
-from mail import Mail
-from telegram import Telegram
+import sms
+import mail
+import telegram
+import dbdriver as db
 from templates import Netwatch, Update
-
 
 config = configparser.ConfigParser()
 config.read('config.ini')
 
+q = Queue(connection=Redis(config['REDIS']['host'], config['REDIS']['port']))
+
 class RESTDB(Resource):
 
     def __init__(self):
-        self.database = Database()
         self.endpoints = {'host': 'hosts', 'router': 'routers', 'user': 'users'}
 
     def get(self, name):
-        db = self.database
-
         result = ''
         if name in self.endpoints:
-            result = db.dump(self.endpoints[name])
+            job = q.enqueue(db.dump, args=(self.endpoints[name],))
+            while job.result is None:
+                pass
+            result, error = job.result
+
             if result is None:
-                return "Table {} not found".format(name), 404
+                return "Error on dump : {}".format(error), 500
+
         else:
             if hasattr(self, 'table'):
-                result = db.select(self.table, {'name': name})
+                job = q.enqueue(db.select, args=(self.table, {'name': name},))
+                while job.result is None:
+                    pass
+                result, error = job.result
+
                 if result is None:
-                    return "Entity '{}' not found in table '{}'".format(name, self.table), 404
+                    return "Entity '{}' not found in table '{}' : {}".format(name, self.table, error), 404
+
             else:
-                return "Table not defined", 404
+                return "Table not defined".format(name), 404
 
         return result, 200
 
     def post(self, name):
-        db = self.database
-
         if not hasattr(self, 'table'):
             return "Table not defined", 404
 
-        if db.select(self.table, {'name': name}) is not None:
+        job = q.enqueue(db.select, args=(self.table, {'name': name},))
+        while job.result is None:
+            pass
+        result, error = job.result
+
+        if result is not None:
+            if error is not None:
+                return "Error on select : {}".format(error), 500
+
             return "Entity '{}' already exists in table '{}'".format(name, self.table), 400
 
         parser = reqparse.RequestParser()
@@ -59,21 +75,36 @@ class RESTDB(Resource):
             data[key] = args[key]
         data['name'] = name
 
-        result = db.insert(self.table, data)
+        job = q.enqueue(db.insert, args=(self.table, data),)
+        while job.result is None:
+            pass
+        result, error = job.result
 
         if result is None:
-            return "Error on insert : {}".format(result), 400
+            return "Error on insert : {}".format(error), 400
+
         else:
-            db.commit()
-            result = db.select(self.table, {'name': name})
-            db.close()
+            job = q.enqueue(db.select, args=(self.table, {'name': name},))
+            while job.result is None:
+                pass
+            result, error = job.result
+
             return result, 201
 
     def put(self, name):
-        db = self.database
-
         if not hasattr(self, 'table'):
             return "Table not defined", 404
+
+        job = q.enqueue(db.select, args=(self.table, {'name': name},))
+        while job.result is None:
+            pass
+        result, error = job.result
+
+        if result is None:
+            if error is not None:
+                return "Error on select : {}".format(error), 500
+
+            return "Entity '{}' does not exist in table '{}'".format(name, self.table), 400
 
         parser = reqparse.RequestParser()
         for key in self.definition:
@@ -85,32 +116,49 @@ class RESTDB(Resource):
             if args[key]:
                 data[key] = args[key]
 
-        result = db.update(self.table, data, {'name': name})
-
-        if 'name' in data:
-            name = data['name']
+        job = q.enqueue(db.update, args=(self.table, {'name': name}, data,))
+        while job.result is None:
+            pass
+        result, error = job.result
 
         if result is None:
-            return "Error on update : {}".format(result), 400
+            return "Error on update : {}".format(error), 400
+
         else:
-            db.commit()
-            result = db.select(self.table, {'name': name})
-            db.close()
+            if 'name' in data:
+                name = data['name']
+
+            job = q.enqueue(db.select, args=(self.table, {'name': name},))
+            while job.result is None:
+                pass
+            result, error = job.result
+
             return result, 201
 
     def delete(self, name):
-        db = self.database
-
         if not hasattr(self, 'table'):
             return "Table not defined", 404
 
-        result = db.delete(self.table, {'name': name})
+        job = q.enqueue(db.select, args=(self.table, {'name': name},))
+        while job.result is None:
+            pass
+        result, error = job.result
+
         if result is None:
-            return "Error on delete : {}".format(result), 400
+            if error is not None:
+                return "Error on select : {}".format(error), 500
+
+            return "Entity '{}' does not exist in table '{}'".format(name, self.table), 400
+
+        job = q.enqueue(db.delete, args=(self.table, {'name': name},))
+        while job.result is None:
+            pass
+        result, error = job.result
+
+        if result is None:
+            return "Error on delete : {}".format(error), 500
         else:
-            db.commit()
-            db.close()
-            return "Entity '{}' is deleted from table '{}'".format(name, self.table), 200
+            return "Entity '{}' has been deleted from table '{}'".format(name, self.table), 200
 
 class Host(RESTDB):
 
@@ -120,8 +168,6 @@ class Host(RESTDB):
         super(Host, self).__init__()
 
     def put(self, name):
-        db = Database()
-
         parser = reqparse.RequestParser()
         for key in self.definition:
             parser.add_argument(key)
@@ -136,24 +182,51 @@ class Host(RESTDB):
             if args[key]:
                 data[key] = args[key]
 
-        host = db.select(self.table, {'name': name})
+        job = q.enqueue(db.select, args=(self.table, {'name': name},))
+        while job.result is None:
+            pass
+        result, error = job.result
 
-        r = ''
-        if host is None:
+        if result is None:
+            if error is not None:
+                return "Error on select : {}".format(error), 400
+
             data['name'] = name
             if args['status'] == 'down':
                 data['last_up'] = data['last_down']
             elif args['status'] == 'up':
                 data['last_down'] = data['last_up']
-            r = db.insert(self.table, data)
+
+            job = q.enqueue(db.insert, args=(self.table, data,))
+            while job.result is None:
+                pass
+            result, error = job.result
+
+            if result is None:
+                return "Error on insert : ".format(error), 500
+
         else:
-            r = db.update(self.table, data, {'name': name})
+            job = q.enqueue(db.update, args=(self.table, {'name': name}, data,))
+            while job.result is None:
+                pass
+            result, error = job.result
 
-        if r is None:
-            return "Error on insert/update : {}".format(r), 400
-        db.commit()
+            if result is None:
+                return "Error on update : {}".format(error), 500
 
-        host = db.select(self.table, {'name': name})
+        job = q.enqueue(db.select, args=(self.table, {'name': name},))
+        while job.result is None:
+            pass
+        result, error = job.result
+
+        if result is None:
+            if error is not None:
+                return "Error on select : {}".format(error), 500
+
+            return "Entity '{}' does not exist in table '{}'".format(name, self.table), 400
+
+        host = result
+
         witness = host['witness']
         address = host['address']
         status = args['status']
@@ -173,22 +246,35 @@ class Host(RESTDB):
 
         result = {}
         if args['email'] is True:
-            mail = Mail()
-            result['email'] = mail.new(args['user'], message)
+            job = q.enqueue(mail.send, args=(args['user'], message,))
+            while job.result is None:
+                pass
+            result['email'] = job.result
 
         if args['sms'] is True:
-            sms = Sms()
-            result['sms'] = sms.new(args['user'], message)
+            job = q.enqueue(sms.send, args=(args['user'], message,))
+            while job.result is None:
+                pass
+            result['sms'] = job.result
 
         if args['telegram'] is True:
-            telegram = Telegram()
-            result['telegram'] = telegram.new(args['user'], message)
+            job = q.enqueue(telegram.send, args=(args['user'], message,))
+            while job.result is None:
+                pass
+            result['telegram'] = job.result
 
-        db.update('hosts', {'duration': duration}, {'name': name})
-        db.commit()
+        job = q.enqueue(db.update, args=('hosts', {'name': name}, {'duration': duration},))
+        while job.result is None:
+            pass
+        result, error = job.result
 
-        result['host'] = db.select(self.table, {'name': name})
-        db.close()
+        if result is None:
+            return "Error on update : {}".format(error), 500
+
+        job = q.enqueue(db.select, args=(self.table, {'name': name},))
+        while job.result is None:
+            pass
+        result, error = job.result
 
         return result, 201
 
@@ -250,3 +336,4 @@ if __name__ == "__main__":
     api.add_resource(User, '/user/<string:name>')
 
     app.run(host=config['API']['host'], port=config['API']['port'], debug=True)
+

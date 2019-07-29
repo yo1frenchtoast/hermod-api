@@ -2,32 +2,28 @@
 
 import smtplib
 import configparser
-from dbdriver import Database
+from dbdriver import select
 
 config = configparser.ConfigParser()
 config.read('config.ini')
+config = config['SMTP']
 
-class Mail:
+server = smtplib.SMTP(config['server'], int(config['port']))
+server.ehlo()
 
-    def __init__(self):
-        self.database = Database()
+if config['use_tls'] == 'yes':
+    server.starttls()
+server.login(config['user'], config['password'])
 
-        server = smtplib.SMTP(config['SMTP']['server'], int(config['SMTP']['port']))
-        server.ehlo()
-        if config['SMTP']['use_tls'] == 'yes':
-            server.starttls()
-        server.login(config['SMTP']['user'], config['SMTP']['password'])
-        self.mailserver = server
+def send(dest, message):
+    user = select('users', {'name': dest})
 
-    def new(self, dest, message):
-        db = self.database
+    email = user['email']
 
-        user = db.select('users', {'name': dest})
-        mail = user['email']
+    message = "Subject : {}\n\n".format(message)
 
-        message = "Subject : {}\n\n".format(message)
+    result = server.sendmail(config['user'], email, message)
+    server.close()
 
-        result = self.mailserver.sendmail(config['SMTP']['user'], mail, message)
-        self.mailserver.close()
+    return result
 
-        return result

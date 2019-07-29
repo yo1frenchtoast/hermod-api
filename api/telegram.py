@@ -2,21 +2,16 @@
 
 import urllib
 import requests
-from dbdriver import Database
+from dbdriver import select
 
-class Telegram:
+def send(dest, message):
+    user = select('users', {'name': dest})
 
-    def __init__(self):
-        self.database = Database()
+    token = user['telegrambot_token']
+    chatid = user['telegrambot_chatid']
 
-    def new(self, dest, message):
-        db = self.database
+    url = 'https://api.telegram.org/bot'+token+'/sendMessage?chat_id='+str(chatid)+'&text='+urllib.quote(message)
+    result = requests.get(url)
 
-        user = db.select('users', {'name': dest})
-        token = user['telegrambot_token']
-        chatid = user['telegrambot_chatid']
+    return result.status_code
 
-        url = 'https://api.telegram.org/bot'+token+'/sendMessage?chat_id='+chatid+'&text='+urllib.quote(message)
-        result = requests.get(url)
-
-        return result.status_code
