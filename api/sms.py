@@ -1,26 +1,21 @@
 #!/usr/bin/python
 
 import ovh
-from dbdriver import Database
+from dbdriver import select
 
-class Sms:
+client = ovh.Client()
 
-    def __init__(self):
-        self.database = Database()
-        self.client = ovh.Client()
+def send(dest, message):
+    user = select('users', {'name': dest})
 
-    def new(self, dest, message):
-        db = self.database
+    phone = user['phone']
+    account = user['sms_account']
 
-        user = db.select('users', {'name': dest})
-        phone = user['phone']
-        account = user['sms_account']
+    result = client.post('/sms/'+account+'/jobs',
+        message=message,
+        receivers=[phone],
+        senderForResponse=True
+    )
 
-        result = self.client.post('/sms/'+account+'/jobs',
-            message=message,
-            receivers=[phone],
-            senderForResponse=True
-        )
-
-        return result
+    return result
 

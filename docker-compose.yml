@@ -1,12 +1,55 @@
 version: '3'
+
+volumes:
+  hermod-api_db:
+
 services:
-  hermod-api:
-    build: .
-    container_name: hermod-api
-    ports:
-      - 5000:5000
+  db:
+    image: mariadb
+    restart: always
+    command: --transaction-isolation=READ-COMMITTED
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: hermod_api
+      MYSQL_USER: hermod
+      MYSQL_PASSWORD: hermod_password
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d:ro
+      - hermod-api_db:/var/lib/mysql
+  # ports:
+  #   - 3306:3306
+
+  redis:
+    image: redis
+    restart: always
+  # ports:
+  #   - 6379:6379
+
+  api:
+    build: ./
+    restart: always
+    links:
+      - db
+      - redis
+    depends_on:
+      - db
+      - redis
     volumes:
       - /data/hermod-api/config.ini:/usr/src/app/api/config.ini
       - /data/hermod-api/ovh.conf:/usr/src/app/api/ovh.conf
-      - /data/hermod-api/data.db:/usr/src/app/api/data.db
-    restart: unless-stopped
+    ports:
+      - 5000:5000
+
+  worker:
+    build: ./
+    command: rq worker --url=redis://redis:6379
+    restart: always
+    links:
+      - db
+      - redis
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - /data/hermod-api/config.ini:/usr/src/app/api/config.ini
+

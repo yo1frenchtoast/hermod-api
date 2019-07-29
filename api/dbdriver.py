@@ -1,95 +1,116 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import json
-import sqlite3
+import configparser
+import mysql.connector
 
-class Database:
+config = configparser.ConfigParser()
+config.read('config.ini')
+config = config['DB']
 
-    def __init__(self):
-        def dict_factory(cursor, row):
-            d = {}
-            for idx, col in enumerate(cursor.description):
-                d[col[0]] = row[idx]
-            return d
+def dump(table):
+    connection = mysql.connector.connect(**config)
+    cursor = connection.cursor(dictionary=True)
 
-        try:
-            self.connection = sqlite3.connect('data.db')
-        except Error as e:
-            print(e)
+    query = "SELECT * FROM {}".format(table)
 
-        self.connection.row_factory = dict_factory
-        self.conn_cursor = self.connection.cursor()
-
-    def dump(self, table):
-        cursor = self.conn_cursor
-
-        query = "SELECT * FROM {}".format(table)
-
+    try:
         cursor.execute(query)
         result = cursor.fetchall()
+        return result, None
+    except mysql.connector.Error as e:
+        print (e)
+        return None, e.msg
 
-        return result
+    finally:
+        cursor.close()
+        connection.close()
 
-    def select(self, table, element):
-        cursor = self.conn_cursor
+def select(table, element):
+    connection = mysql.connector.connect(**config)
+    cursor = connection.cursor(dictionary=True)
 
-        column = element.keys()[0]
-        value = element.values()[0]
+    column = element.keys()[0]
+    value = element.values()[0]
 
-        query = "SELECT * FROM {} WHERE {}='{}'".format(table, column, value)
+    query = "SELECT * FROM {} WHERE {}='{}'".format(table, column, value)
 
+    try:
         cursor.execute(query)
         result = cursor.fetchone()
+        return result, None
+    except mysql.connector.Error as e:
+        print (e)
+        return None, e.msg
 
-        return result
+    finally:
+        cursor.close()
+        connection.close()
 
-    def insert(self, table, data):
-        cursor = self.conn_cursor
+def insert(table, data):
+    connection = mysql.connector.connect(**config)
+    cursor = connection.cursor()
 
-        columns = ', '.join(data.keys())
-        placeholders = ':'+', :'.join(data.keys())
+    columns = ', '.join(data.keys())
+    placeholders = ', '.join(["%s"]*len(data))
 
-        query = "INSERT INTO {}({}) VALUES ({})".format(table, columns, placeholders)
+    query = "INSERT INTO {}({}) VALUES ({})".format(table, columns, placeholders)
 
-        result = cursor.execute(query, data)
+    try:
+        cursor.execute(query, data.values())
+        connection.commit()
+        return "Data inserted successfully", None
+    except mysql.connector.Error as e:
+        print (e)
+        return None, e.msg
 
-        return result
+    finally:
+        cursor.close()
+        connection.close()
 
-    def delete(self, table, element):
-        cursor = self.conn_cursor
+def delete(table, element):
+    connection = mysql.connector.connect(**config)
+    cursor = connection.cursor()
 
-        column = element.keys()[0]
-        value = element.values()[0]
+    column = element.keys()[0]
+    value = element.values()[0]
 
-        query = "DELETE FROM {} WHERE {}='{}'".format(table, column, value)
+    query = "DELETE FROM {} WHERE {}='{}'".format(table, column, value)
 
-        result = cursor.execute(query)
+    try:
+        cursor.execute(query)
+        connection.commit()
+        return "Data deleted successfully", None
+    except mysql.connector.Error as e:
+        print (e)
+        return None, e.msg
 
-        return result
+    finally:
+        cursor.close()
+        connection.close()
 
-    def update(self, table, data, element):
-        cursor = self.conn_cursor
+def update(table, element, data):
+    connection = mysql.connector.connect(**config)
+    cursor = connection.cursor()
 
-        placeholders = ''
-        for key in data.keys():
-            placeholders += key+'=:'+key+', '
-        placeholders = placeholders[:-2]
-        column = element.keys()[0]
-        value = element.values()[0]
+    placeholders = ''
+    for key in data.keys():
+        placeholders += "{}=\"{}\", ".format(key, data[key])
+    placeholders = placeholders[:-2]
+    column = element.keys()[0]
+    value = element.values()[0]
 
-        query = "UPDATE {} SET {} WHERE {}='{}'".format(table, placeholders, column, value)
+    query = "UPDATE {} SET {} WHERE {}='{}'".format(table, placeholders, column, value)
 
-        result = cursor.execute(query, data)
+    try:
+        cursor.execute(query)
+        connection.commit()
+        return "Data updated successfully", None
+    except mysql.connector.Error as e:
+        print (e)
+        return None, e.msg
 
-        return result
-
-    def commit(self):
-        result = ''
-
-        result = self.connection.commit()
-
-        return result
-
-    def close(self):
-        self.connection.close()
+    finally:
+        cursor.close()
+        connection.close()
 

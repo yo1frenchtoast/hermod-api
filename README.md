@@ -7,65 +7,76 @@ https://en.wikipedia.org/wiki/Herm%C3%B3%C3%B0r
 
 ## Getting started
 
-### Installation
+### Docker-compose
+
+### Before you begin
+
+You need to :
+- setup OVH API
+- setup config file
+- create local mount folder and move config files into it
 
 ```
-cd /opt/
-git clone REPO
-cp -r REPO/hermod-api/ ./
-pip install -r hermod-api/requirements.txt
+mkdir -p /data/hermod-api/
 ```
 
-To enable systemd service :
+#### OVH SMS : API configuration
+
+Please follow python-ovh documentation to create config file : https://github.com/ovh/python-ovh/blob/master/README.rst
+
+Then :
 
 ```
-cp hermod-api/hermod-api.service /lib/systemd/system/hermod-api.service
-systemctl daemon-reload
-systemctl enable hermod-api.service
-service hermod-api.service start
+mv ovh.conf /data/hermod-api/
 ```
 
-### Docker
+#### API Configuration
 
-```
-docker build -t hermod-api .
-```
+Sample file is provided in api/config.ini.sample, fill it with your settings
 
-```
-docker run -d -p 5000:5000 -v /data/hermod-api/config.ini:/usr/src/app/api/config.ini -v /data/hermod-api/ovh.conf:/usr/src/app/api/ovh.conf -v /data/hermod-api/data.db:/usr/src/app/api/data.db --restart unless-stopped --name hermod-api hermod-api
-```
+NOTE : DB and REDIS hosts are based on docker-compose services names (docker internal DNS names)
 
-or 
-
-```
-docker-compose up -d
-```
-
-### Configuration
 sample
 ```
 [API]
-host = 0.0.0.0
-port = 5000
-url = hermod.api.domain.tld
-protocol = http
-log_file = hermod-api.log
+host=0.0.0.0
+port=5000
+url=hermod.api.domain.tld
+protocol=http
+log_file=hermod-api.log
+
+[DB]
+host=db
+port=3306
+database=hermod_api
+user=hermod
+password=hermod_password
+
+[REDIS]
+host=redis
+port=6379
+password=
 
 [SMTP]
 server=smtp.domain.tld
 port=587
 use_tls=yes
-user=admin@domain.tld
-password=mySup3r53cureP455w0rd
+user=user@domain.tld
+password=smtp_password
+```
+
+Then :
+```
+mv config.ini /data/hermod-api/
 ```
 
 ### Database table definitions
 
-/opt/hermod-api/api/data.db
+Initialization is done by docker-compose, init file provided in db/init.sql
 
 #### Users
 ```
-sqlite> CREATE TABLE users(
+CREATE TABLE users(
     name    TEXT UNIQUE NOT NULL,
     email   TEXT NOT NULL,
     phone   TEXT NOT NULL,
@@ -77,7 +88,7 @@ sqlite> CREATE TABLE users(
 
 #### Routers
 ```
-sqlite> CREATE TABLE routers(
+CREATE TABLE routers(
     name        TEXT UNIQUE NOT NULL,
     loopback    TEXT NOT NULL,
     uptime      TEXT,
@@ -89,7 +100,7 @@ sqlite> CREATE TABLE routers(
 
 #### Hosts
 ```
-sqlite> CREATE TABLE hosts(
+CREATE TABLE hosts(
     name    TEXT UNIQUE NOT NULL,
     address TEXT NOT NULL,
     status      TEXT,
@@ -234,6 +245,3 @@ do {
 ```
 **Don't forget to Replace API_SERVER_ADDRESS and USER on fetch**
 
-### OVH SMS : API configuration
-
-Please follow python-ovh documentation to create config file : https://github.com/ovh/python-ovh/blob/master/README.rst
