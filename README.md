@@ -70,6 +70,12 @@ Then :
 mv config.ini /data/hermod-api/
 ```
 
+#### Build and run
+
+```
+docker-compose build && docker-compose up -d
+```
+
 ### Database table definitions
 
 Initialization is done by docker-compose, init file provided in db/init.sql
