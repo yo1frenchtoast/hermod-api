@@ -16,7 +16,7 @@ if config['use_tls'] == 'yes':
 server.login(config['user'], config['password'])
 
 def send(dest, message):
-    user = select('users', {'name': dest})
+    user = select('users', {'name': dest})[0]
 
     email = user['email']
 

@@ -5,7 +5,7 @@ import requests
 from dbdriver import select
 
 def send(dest, message):
-    user = select('users', {'name': dest})
+    user = select('users', {'name': dest})[0]
 
     token = user['telegrambot_token']
     chatid = user['telegrambot_chatid']
