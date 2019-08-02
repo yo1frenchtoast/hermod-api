@@ -38,7 +38,7 @@ services:
       - /data/hermod-api/config.ini:/usr/src/app/api/config.ini
       - /data/hermod-api/ovh.conf:/usr/src/app/api/ovh.conf
     ports:
-      - 5000:5000
+      - 9090:9090
 
   worker:
     build: ./

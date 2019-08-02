@@ -40,7 +40,7 @@ sample
 ```
 [API]
 host=0.0.0.0
-port=5000
+port=9090
 url=hermod.api.domain.tld
 protocol=http
 log_file=hermod-api.log
@@ -125,13 +125,13 @@ Get json of requested entity
 - list of all routers:
 
 ```
-curl http://127.0.0.1:5000/router
+curl http://127.0.0.1:9090/router
 ```
 
 - specific user:
 
 ```
-curl http://127.0.01:5000/user/admin
+curl http://127.0.01:9090/user/admin
 ```
 
 #### POST
@@ -140,7 +140,7 @@ Add new entity
 - add new router:
 
 ```
-curl -X POST -d "loopback=10.0.10.1" http://127.0.0.1:5000/router/test1
+curl -X POST -d "loopback=10.0.10.1" http://127.0.0.1:9090/router/test1
 ```
 
 #### PUT
@@ -149,7 +149,7 @@ Modiy existing entity
 - set phone and email address on user:
 
 ```
-curl -X PUT -d "phone='+336684684984'&email=test@test.test" http://127.0.0.1:5000/user/test1
+curl -X PUT -d "phone='+336684684984'&email=test@test.test" http://127.0.0.1:9090/user/test1
 ```
 
 #### DELETE
@@ -158,7 +158,7 @@ Remove entity
 - delete router 'test1':
 
 ```
-curl -X DELETE http://127.0.0.1:5000/router/test1
+curl -X DELETE http://127.0.0.1:9090/router/test1
 ```
 
 ### Mikrotik scripts
@@ -176,7 +176,7 @@ local version [/system resource get version]
 local date "$[/system clock get date] $[/system clock get time]"
 local data "loopback=$loopback&uptime=$uptime&architecture=$architecture&version=$version&last_seen=$date"
 do {
-    /tool fetch http-method=put http-data=$data url="http://API_SERVER_ADDRESS:5000/router/$name" output=none
+    /tool fetch http-method=put http-data=$data url="http://API_SERVER_ADDRESS:9090/router/$name" output=none
 } on-error={
     /log error "api-put-router: Couldnt PUT data about $name on API"
 }
@@ -207,7 +207,7 @@ local witness [/system identity get name]
 # update host in db
 local data "address=$address&status=$status&last_down=$since&witness=$witness"
 do {
-    /tool fetch http-method=put http-data=$data url="http://API_SERVER_ADDRESS:5000/host/$name" output=none
+    /tool fetch http-method=put http-data=$data url="http://API_SERVER_ADDRESS:9090/host/$name" output=none
 } on-error={
     /log error "netwatch: Couldnt PUT data about $address on API"
 }
@@ -215,7 +215,7 @@ do {
 # send notification
 local notifications "email=1&telegram=1"
 do {
-    /tool fetch http-method=post http-data=$notifications url="http://API_SERVER_ADDRESS:5000/host/$name/notification/USER" output=none
+    /tool fetch http-method=post http-data=$notifications url="http://API_SERVER_ADDRESS:9090/host/$name/notification/USER" output=none
 } on-error={
     /log error "netwatch: Couldnt POST notifications for $address on API"
 }
@@ -236,7 +236,7 @@ local witness [/system identity get name]
 
 local data "address=$address&status=$status&last_up=$since&witness=$witness"
 do {
-    /tool fetch http-method=put http-data=$data url="http://API_SERVER_ADDRESS:5000/host/$name" output=none
+    /tool fetch http-method=put http-data=$data url="http://API_SERVER_ADDRESS:9090/host/$name" output=none
 } on-error={
     /log error "netwatch: Couldnt PUT data about $address on API"
 }
@@ -244,7 +244,7 @@ do {
 # send notification
 local notifications "email=1&telegram=1"
 do {
-    /tool fetch http-method=post http-data=$notifications url="http://API_SERVER_ADDRESS:5000/host/$name/notification/USER" output=none
+    /tool fetch http-method=post http-data=$notifications url="http://API_SERVER_ADDRESS:9090/host/$name/notification/USER" output=none
 } on-error={
     /log error "netwatch: Couldnt POST notifications for $address on API"
 }
