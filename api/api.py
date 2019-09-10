@@ -164,7 +164,7 @@ class Host(RESTDB):
 
     def __init__(self):
         self.table = 'hosts'
-        self.definition = ['name', 'address', 'status', 'last_down', 'last_up', 'duration', 'witness']
+        self.definition = ['name', 'address', 'mac', 'status', 'last_down', 'last_up', 'duration', 'witness']
         super(Host, self).__init__()
 
     def put(self, name):
@@ -235,13 +235,20 @@ class Host(RESTDB):
 
         if status == 'down':
             since = datetime.datetime.strptime(data['last_down'], '%b/%d/%Y %H:%M:%S')
-            previous = datetime.datetime.strptime(host['last_up'], '%b/%d/%Y %H:%M:%S')
+            if host['last_up'] is None:
+                previons = since
+            else:
+                previous = datetime.datetime.strptime(host['last_up'], '%b/%d/%Y %H:%M:%S')
         elif status == 'up':
             since = datetime.datetime.strptime(data['last_up'], '%b/%d/%Y %H:%M:%S')
-            previous = datetime.datetime.strptime(host['last_down'], '%b/%d/%Y %H:%M:%S')
+            if host['last_down'] is None:
+                previous = since
+            else:
+                previous = datetime.datetime.strptime(host['last_down'], '%b/%d/%Y %H:%M:%S')
 
         duration = str(since - previous)
-        since = datetime.datetime.strftime(since, '%Y-%m-%d %H:%M:%S')
+        else:
+            since = datetime.datetime.strftime(since, '%Y-%m-%d %H:%M:%S')
         message = "{} #{} host {} ({}) since {} (duration = {})".format(witness, status.upper(), address, name, since, duration)
 
         result = {}
@@ -297,7 +304,7 @@ class HostTemplate(Resource):
     def __init__(self):
         self.template = Netwatch()
 
-    def post(self, address):
+    def get(self, address):
         template = self.template
 
         parser = reqparse.RequestParser()
@@ -317,7 +324,7 @@ class HostTemplate(Resource):
 
         host = address
         server = "{}://{}:{}".format(config['API']['protocol'], config['API']['url'], config['API']['port'])
-        notifications = "email={}&sms={}&telegram={}".format(email, sms, telegram)
+        notifications = {'email': email, 'sms': sms, 'telegram': telegram}
 
         result = {}
         for status in ['down', 'up']:

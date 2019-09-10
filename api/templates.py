@@ -4,6 +4,12 @@ class Netwatch:
 
     def generate(self, host, status, server, notifications, user):
 
+        email = notifications['email']
+        sms = notifications['sms']
+        telegram = notifications['telegram']
+
+        notifications = "email={}&sms={}&telegram={}".format(email, sms, telegram)
+
         result = """### CREATED WITH HERMOD API TEMPLATE
 local address {}
 
@@ -12,10 +18,14 @@ local status [/tool netwatch get [find host=$address] status]
 local since [/tool netwatch get [find host=$address] since]
 local witness [/system identity get name]
 
+# workaround : cannot use variable name on same named key
+local ip $address
+local mac [/ip arp get [find address=$ip] mac-address]
+
 /log warning \"netwatch: {} $address ($name) since $since\"
 
 # update host in api
-local data \"address=$address&status=$status&last_{}=$since&witness=$witness&{}&user={}\"
+local data \"address=$address&status=$status&last_{}=$since&witness=$witness&{}&user={}&mac=$mac\"
 do {{
     /tool fetch http-method=put http-data=$data url=\"{}/host/$name\" output=none
 }} on-error={{

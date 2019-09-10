@@ -23,6 +23,7 @@ CREATE TABLE routers(
 CREATE TABLE hosts(
     name    TEXT UNIQUE NOT NULL,
     address TEXT NOT NULL,
+    mac     TEXT,
     status      TEXT,
     last_down   TEXT,
     last_up     TEXT,
