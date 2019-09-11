@@ -247,8 +247,7 @@ class Host(RESTDB):
                 previous = datetime.datetime.strptime(host['last_down'], '%b/%d/%Y %H:%M:%S')
 
         duration = str(since - previous)
-        else:
-            since = datetime.datetime.strftime(since, '%Y-%m-%d %H:%M:%S')
+        since = datetime.datetime.strftime(since, '%Y-%m-%d %H:%M:%S')
         message = "{} #{} host {} ({}) since {} (duration = {})".format(witness, status.upper(), address, name, since, duration)
 
         result = {}
@@ -312,6 +311,7 @@ class HostTemplate(Resource):
         parser.add_argument('sms')
         parser.add_argument('telegram')
         parser.add_argument('user')
+        parser.add_argument('server')
         args = parser.parse_args()
 
         email = True if args['email'] else False
@@ -323,7 +323,9 @@ class HostTemplate(Resource):
             return "Notifications is set, user must be specified", 400
 
         host = address
-        server = "{}://{}:{}".format(config['API']['protocol'], config['API']['url'], config['API']['port'])
+        server = args['server']
+        if server is None:
+            server = "{}://{}:{}".format(config['API']['protocol'], config['API']['url'], config['API']['port'])
         notifications = {'email': email, 'sms': sms, 'telegram': telegram}
 
         result = {}

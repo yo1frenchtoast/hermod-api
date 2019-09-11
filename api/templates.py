@@ -20,7 +20,11 @@ local witness [/system identity get name]
 
 # workaround : cannot use variable name on same named key
 local ip $address
-local mac [/ip arp get [find address=$ip] mac-address]
+do {{
+    local mac [/ip arp get [find address=$ip] mac-address]
+}} on-error={{
+    # avoid break on error, do nothing
+}}
 
 /log warning \"netwatch: {} $address ($name) since $since\"
 
@@ -32,7 +36,6 @@ do {{
     /log error \"netwatch: Couldnt PUT data about $address on API\"
 }}""".format(host, status.upper(), status, notifications, user, server)
 
-        print result
         return result
 
 class Update:
@@ -41,11 +44,13 @@ class Update:
 
         result = """### CREATED WITH HERMOD API TEMPLATE
 local name [/system identity get name]
+
 local loopback [/ip addr get [find interface=loopback] address]
 local uptime [/system resource get uptime]
 local architecture [/system resource get architecture-name]
 local version [/system resource get version]
 local date \"$[/system clock get date] $[/system clock get time]\"
+
 local data \"loopback=$loopback&uptime=$uptime&architecture=$architecture&version=$version&last_seen=$date\"
 
 do {{
