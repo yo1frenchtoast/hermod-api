@@ -17,39 +17,34 @@ services:
       - ./db:/docker-entrypoint-initdb.d:ro
       - hermod-api_db:/var/lib/mysql
   # ports:
-  #   - 3306:3306
+    # - 3306:3306
 
   redis:
     image: redis
     restart: always
   # ports:
-  #   - 6379:6379
+    # - 6379:6379
 
-  api:
+  webserver:
     build: ./
     restart: always
-    links:
-      - db
-      - redis
     depends_on:
       - db
       - redis
-    volumes:
-      - /data/hermod-api/config.ini:/usr/src/app/api/config.ini
-      - /data/hermod-api/ovh.conf:/usr/src/app/api/ovh.conf
+    env_file:
+      - .env
     ports:
       - 9090:9090
+    # for debug purpose
+    #    cap_add:
+    #      - SYS_PTRACE
 
   worker:
     build: ./
     command: rq worker --url=redis://redis:6379
     restart: always
-    links:
-      - db
-      - redis
     depends_on:
       - db
       - redis
-    volumes:
-      - /data/hermod-api/config.ini:/usr/src/app/api/config.ini
-
+    env_file:
+      - .env

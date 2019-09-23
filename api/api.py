@@ -10,14 +10,14 @@ from flask_restful import Api, Resource, reqparse, inputs
 
 import sms
 import mail
+import config
 import telegram
 import dbdriver as db
 from templates import Netwatch, Update
 
-config = configparser.ConfigParser()
-config.read('config.ini')
+config = config.get(None)
 
-q = Queue(connection=Redis(config['REDIS']['host'], config['REDIS']['port']))
+q = Queue(connection=Redis(config['redis']['host'], config['redis']['port']))
 
 class RESTDB(Resource):
 
@@ -325,7 +325,7 @@ class HostTemplate(Resource):
         host = address
         server = args['server']
         if server is None:
-            server = "{}://{}:{}".format(config['API']['protocol'], config['API']['url'], config['API']['port'])
+            server = "{}://{}:{}".format(config['api']['protocol'], config['api']['url'], config['api']['port'])
         notifications = {'email': email, 'sms': sms, 'telegram': telegram}
 
         result = {}
@@ -344,5 +344,5 @@ if __name__ == "__main__":
     api.add_resource(Router, '/router/<string:name>')
     api.add_resource(User, '/user/<string:name>')
 
-    app.run(host=config['API']['host'], port=config['API']['port'], debug=True)
+    app.run(host=config['api']['host'], port=config['api']['port'], debug=True)
 

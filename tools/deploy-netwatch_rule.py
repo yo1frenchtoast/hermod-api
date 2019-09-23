@@ -45,13 +45,15 @@ def main():
         print "Cannot determinate notification level : {}".format(level)
         sys.exit(0)
 
-    notifications['user'] = user
-
     if not re.match("^https?:\/\/.*:\d*$", server):
         print "Error on API server url : {}".format(server)
         sys.exit(0)
 
-    r = requests.get("{}/host/template/{}".format(server, host), data=notifications)
+    data = notifications
+    data['user'] = user
+    data['server'] = server
+
+    r = requests.get("{}/host/template/{}".format(server, host), data=data)
 
     content = json.loads(r.content)
 

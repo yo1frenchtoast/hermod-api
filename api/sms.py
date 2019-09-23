@@ -1,9 +1,17 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import ovh
+import config
 from dbdriver import select
 
-client = ovh.Client()
+config = config.get('ovh')
+
+client = ovh.Client(
+    endpoint='ovh-eu',
+    application_key=config['application_key'],
+    application_secret=config['application_secret'],
+    consumer_key=config['consumer_key']
+)
 
 def send(dest, message):
     user = select('users', {'name': dest})[0]

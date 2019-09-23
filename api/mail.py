@@ -1,12 +1,10 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
+import config
 import smtplib
-import configparser
 from dbdriver import select
 
-config = configparser.ConfigParser()
-config.read('config.ini')
-config = config['SMTP']
+config = config.get('smtp')
 
 server = smtplib.SMTP(config['server'], int(config['port']))
 server.ehlo()

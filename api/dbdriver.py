@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 
 import json
-import configparser
+import config
 import mysql.connector
 
-config = configparser.ConfigParser()
-config.read('config.ini')
-config = config['DB']
+config = config.get('db')
 
 def dump(table):
     connection = mysql.connector.connect(**config)

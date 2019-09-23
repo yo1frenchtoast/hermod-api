@@ -13,67 +13,49 @@ https://en.wikipedia.org/wiki/Herm%C3%B3%C3%B0r
 
 You need to :
 - setup OVH API
-- setup config file
-- create local mount folder and move config files into it
-
-```
-mkdir -p /data/hermod-api/
-```
+- setup env config file
 
 #### OVH SMS : API configuration
 
-Please follow python-ovh documentation to create config file : https://github.com/ovh/python-ovh/blob/master/README.rst
-
-Then :
-
-```
-mv ovh.conf /data/hermod-api/
-```
+Please follow python-ovh documentation to get config variables : https://github.com/ovh/python-ovh/blob/master/README.rst
 
 #### API Configuration
 
-Sample file is provided in api/config.ini.sample, fill it with your settings
-
 NOTE : DB and REDIS hosts are based on docker-compose services names (docker internal DNS names)
 
-sample
+.env file sample
 ```
-[API]
-host=0.0.0.0
-port=9090
-url=hermod.api.domain.tld
-protocol=http
-log_file=hermod-api.log
+API_HOST=0.0.0.0
+API_PORT=9090
+API_URL=hermod.api.domain.tld
+API_PROTOCOL=http
+API_LOG_FILE=hermod-api.log
 
-[DB]
-host=db
-port=3306
-database=hermod_api
-user=hermod
-password=hermod_password
+DB_HOST=db
+DB_PORT=3306
+DB_DATABASE=hermod_api
+DB_USER=hermod
+DB_PASSWORD=hermod_password
 
-[REDIS]
-host=redis
-port=6379
-password=
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_PASSWORD=
 
-[SMTP]
-server=smtp.domain.tld
-port=587
-use_tls=yes
-user=user@domain.tld
-password=smtp_password
+SMTP_SERVER=smtp.domain.tld
+SMTP_PORT=587
+SMTP_USE_TLS=yes
+SMTP_USER=user@domain.tld
+SMTP_PASSWORD=smtp_password
+
+OVH_ENDPOINT=ovh-eu
+OVH_APPLICATION_KEY=
+OVH_APPLICATION_SECRET=
+OVH_CONSUMER_KEY=
 ```
-
-Then :
-```
-mv config.ini /data/hermod-api/
-```
-
 #### Build and run
 
 ```
-docker-compose build && docker-compose up -d
+docker-compose up --build -d
 ```
 
 ### Database table definitions
