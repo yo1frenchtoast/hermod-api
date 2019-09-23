@@ -60,44 +60,7 @@ docker-compose up --build -d
 
 ### Database table definitions
 
-Initialization is done by docker-compose, init file provided in db/init.sql
-
-#### Users
-```
-CREATE TABLE users(
-    name    TEXT UNIQUE NOT NULL,
-    email   TEXT NOT NULL,
-    phone   TEXT NOT NULL,
-    sms_account     TEXT,
-    telegrambot_token   TEXT,
-    telegrambot_chatid  TEXT
-);
-```
-
-#### Routers
-```
-CREATE TABLE routers(
-    name        TEXT UNIQUE NOT NULL,
-    loopback    TEXT NOT NULL,
-    uptime      TEXT,
-    architecture    TEXT,
-    version         TEXT,
-    last_seen       TEXT
-);
-```
-
-#### Hosts
-```
-CREATE TABLE hosts(
-    name    TEXT UNIQUE NOT NULL,
-    address TEXT NOT NULL,
-    status      TEXT,
-    last_down   TEXT,
-    last_up     TEXT,
-    duration    TEXT,
-    witness     TEXT
-);
-```
+Initialization is done by docker-compose, init file provided in [db/init.sql](db/init.sql)
 
 ### HTTP call examples
 
@@ -145,91 +108,20 @@ curl -X DELETE http://127.0.0.1:9090/router/test1
 
 ### Mikrotik scripts
 
-#### '/router' PUT
+#### Update '/host'
 
-script: name=api-put-router source=
+[Source](api/templates.py#L13-L37)
 
+You get use API to get script templates
 ```
-local name [/system identity get name]
-local loopback [/ip addr get [find interface=loopback] address]
-local uptime [/system resource get uptime]
-local architecture [/system resource get architecture-name]
-local version [/system resource get version]
-local date "$[/system clock get date] $[/system clock get time]"
-local data "loopback=$loopback&uptime=$uptime&architecture=$architecture&version=$version&last_seen=$date"
-do {
-    /tool fetch http-method=put http-data=$data url="http://API_SERVER_ADDRESS:9090/router/$name" output=none
-} on-error={
-    /log error "api-put-router: Couldnt PUT data about $name on API"
-}
-
-``` 
-**Don't forget to replace API_SERVER_ADDRESS on fetch**
-
-scheduler: name=api-put-router start-time=jan/01/1970 start-time=00:00:00 interval=5m on-event=
-
-```
-/system script run api-put-router
+curl -X GET -d "email=True&user=admin" http://127.0.0.1:9090/host/template/192.168.1.1
 ```
 
-#### '/host' PUT
+#### Update '/router'
 
-netwatch: down-script=
+[Source](api/templates.py#L45-L60)
 
+scheduler:
 ```
-local address 192.168.1.10
-
-local name [/tool netwatch get [find host=$address] comment]
-local status [/tool netwatch get [find host=$address] status]
-local since [/tool netwatch get [find host=$address] since]
-local witness [/system identity get name]
-
-/log warning "netwatch: DOWN $address ($name) since $since"
-
-# update host in db
-local data "address=$address&status=$status&last_down=$since&witness=$witness"
-do {
-    /tool fetch http-method=put http-data=$data url="http://API_SERVER_ADDRESS:9090/host/$name" output=none
-} on-error={
-    /log error "netwatch: Couldnt PUT data about $address on API"
-}
-
-# send notification
-local notifications "email=1&telegram=1"
-do {
-    /tool fetch http-method=post http-data=$notifications url="http://API_SERVER_ADDRESS:9090/host/$name/notification/USER" output=none
-} on-error={
-    /log error "netwatch: Couldnt POST notifications for $address on API"
-}
-```
-**Don't forget to Replace API_SERVER_ADDRESS and USER on fetch**
-
-netwatch: up-script=
-
-```
-local address 192.168.1.10
-
-local name [/tool netwatch get [find host=$address] comment]
-local status [/tool netwatch get [find host=$address] status]
-local since [/tool netwatch get [find host=$address] since]
-local witness [/system identity get name]
-
-/log warning "netwatch: UP $address ($name) since $since"
-
-local data "address=$address&status=$status&last_up=$since&witness=$witness"
-do {
-    /tool fetch http-method=put http-data=$data url="http://API_SERVER_ADDRESS:9090/host/$name" output=none
-} on-error={
-    /log error "netwatch: Couldnt PUT data about $address on API"
-}
-
-# send notification
-local notifications "email=1&telegram=1"
-do {
-    /tool fetch http-method=post http-data=$notifications url="http://API_SERVER_ADDRESS:9090/host/$name/notification/USER" output=none
-} on-error={
-    /log error "netwatch: Couldnt POST notifications for $address on API"
-}
-```
-**Don't forget to Replace API_SERVER_ADDRESS and USER on fetch**
-
+/system scheduler add name=api-put-router start-time=jan/01/1970 start-time=00:00:00 interval=5m on-event="system script run api-put-router"
+``````
