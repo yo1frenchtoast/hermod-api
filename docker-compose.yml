@@ -10,9 +10,9 @@ services:
     command: --transaction-isolation=READ-COMMITTED
     environment:
       MYSQL_ROOT_PASSWORD: root_password
-      MYSQL_DATABASE: hermod_api
-      MYSQL_USER: hermod
-      MYSQL_PASSWORD: hermod_password
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
       - ./db:/docker-entrypoint-initdb.d:ro
       - hermod-api_db:/var/lib/mysql
