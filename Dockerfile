@@ -30,7 +30,5 @@ ENV API_HOST="0.0.0.0" \
 
 COPY . .
 
-EXPOSE ${API_PORT}
-
 WORKDIR ./api
 CMD [ "python", "api.py" ]

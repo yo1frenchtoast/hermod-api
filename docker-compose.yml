@@ -1,7 +1,7 @@
 version: '3'
 
 volumes:
-  hermod-api_db:
+  db:
 
 services:
   db:
@@ -15,32 +15,17 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
       - ./db:/docker-entrypoint-initdb.d:ro
-      - hermod-api_db:/var/lib/mysql
+      - db:/var/lib/mysql
   # ports:
     # - 3306:3306
 
   redis:
     image: redis
     restart: always
-  # ports:
-    # - 6379:6379
-
-  webserver:
-    build: ./
-    restart: always
-    depends_on:
-      - db
-      - redis
-    env_file:
-      - .env
-    ports:
-      - 9090:9090
-    # for debug purpose
-    #    cap_add:
-    #      - SYS_PTRACE
 
   worker:
-    build: ./
+    image: 127.0.0.1:5000/hermod-api
+    build: .
     command: rq worker --url=redis://redis:6379
     restart: always
     depends_on:
@@ -48,3 +33,16 @@ services:
       - redis
     env_file:
       - .env
+
+  web:
+    image: 127.0.0.1:5000/hermod-api
+    build: .
+    restart: always
+    depends_on:
+      - db
+      - redis
+      - worker
+    env_file:
+      - .env
+    ports:
+      - 9090:9090

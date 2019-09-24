@@ -1,11 +1,10 @@
-#CREATE DATABASE hermod_api;
 USE hermod_api;
 SET AUTOCOMMIT=0;
 
 CREATE TABLE users(
     name    TEXT UNIQUE NOT NULL,
     email   TEXT NOT NULL,
-    phone   TEXT NOT NULL,
+    phone   TEXT,
     sms_account     TEXT,
     telegrambot_token   TEXT,
     telegrambot_chatid  TEXT
