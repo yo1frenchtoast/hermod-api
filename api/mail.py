@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import config
 import smtplib
 from dbdriver import select

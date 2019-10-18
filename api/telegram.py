@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import urllib
 import requests
 from dbdriver import select

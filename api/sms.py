@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import ovh
 import config
 from dbdriver import select

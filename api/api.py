@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import json
 import datetime
 import configparser
@@ -15,9 +13,14 @@ import telegram
 import dbdriver as db
 from templates import Netwatch, Update
 
+
 config = config.get(None)
 
 q = Queue(connection=Redis(config['redis']['host'], config['redis']['port']))
+
+app = Flask(__name__)
+api = Api(app)
+
 
 class RESTDB(Resource):
 
@@ -334,15 +337,12 @@ class HostTemplate(Resource):
 
         return result, 200
 
+
+api.add_resource(RESTDB, '/<string:name>')
+api.add_resource(Host, '/host/<string:name>')
+api.add_resource(HostTemplate, '/host/template/<string:address>')
+api.add_resource(Router, '/router/<string:name>')
+api.add_resource(User, '/user/<string:name>')
+
 if __name__ == "__main__":
-    app = Flask(__name__)
-
-    api = Api(app)
-    api.add_resource(RESTDB, '/<string:name>')
-    api.add_resource(Host, '/host/<string:name>')
-    api.add_resource(HostTemplate, '/host/template/<string:address>')
-    api.add_resource(Router, '/router/<string:name>')
-    api.add_resource(User, '/user/<string:name>')
-
-    app.run(host=config['api']['host'], port=config['api']['port'], debug=True)
-
+    app.run(host=config['api']['host'], port=config['api']['port'], debug=False)

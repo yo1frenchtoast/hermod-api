@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 class Netwatch:
 
     def generate(self, host, status, server, notifications, user):

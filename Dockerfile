@@ -1,9 +1,10 @@
-FROM python:2
+FROM python:3.7
 
 WORKDIR /usr/src/app
 
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+
+RUN pip3 install --no-cache-dir -r requirements.txt
 
 ENV API_HOST="0.0.0.0" \
   API_PORT="9090" \
@@ -28,7 +29,5 @@ ENV API_HOST="0.0.0.0" \
   OVH_APPLICATION_SECRET="" \
   OVH_CONSUMER_KEY=""
 
-COPY . .
-
 WORKDIR ./api
-CMD [ "python", "api.py" ]
+CMD python api.py
