@@ -26,8 +26,8 @@ def select(table, element):
     connection = mysql.connector.connect(**config)
     cursor = connection.cursor(dictionary=True)
 
-    column = element.keys()
-    value = element.values()
+    column = list(element.keys())[0]
+    value = list(element.values())[0]
 
     query = "SELECT * FROM {} WHERE {}='{}'".format(table, column, value)
 
@@ -68,8 +68,8 @@ def delete(table, element):
     connection = mysql.connector.connect(**config)
     cursor = connection.cursor()
 
-    column = element.keys()
-    value = element.values()
+    column = list(element.keys())[0]
+    value = list(element.values())[0]
 
     query = "DELETE FROM {} WHERE {}='{}'".format(table, column, value)
 
@@ -93,8 +93,8 @@ def update(table, element, data):
     for key in data.keys():
         placeholders += "{}=\"{}\", ".format(key, data[key])
     placeholders = placeholders[:-2]
-    column = element.keys()
-    value = element.values()
+    column = list(element.keys())[0]
+    value = list(element.values())[0]
 
     query = "UPDATE {} SET {} WHERE {}='{}'".format(table, placeholders, column, value)
 
