@@ -258,19 +258,19 @@ class Host(RESTDB):
             job = q.enqueue(mail.send, args=(args['user'], message,))
             while job.result is None:
                 pass
-            result['email'] = job.result
+            result['email'], error = job.result
 
         if args['sms'] is True:
             job = q.enqueue(sms.send, args=(args['user'], message,))
             while job.result is None:
                 pass
-            result['sms'] = job.result
+            result['sms'], error = job.result
 
         if args['telegram'] is True:
             job = q.enqueue(telegram.send, args=(args['user'], message,))
             while job.result is None:
                 pass
-            result['telegram'] = job.result
+            result['telegram'], error = job.result
 
         job = q.enqueue(db.update, args=('hosts', {'name': name}, {'duration': duration},))
         while job.result is None:

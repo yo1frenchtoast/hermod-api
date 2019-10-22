@@ -18,8 +18,11 @@ def send(dest, message):
 
     message = "Subject : {}\n\n".format(message)
 
-    result = server.sendmail(config['user'], email, message)
-    server.close()
-
-    return result
-
+    try:
+        result = server.sendmail(config['user'], email, message)
+        return result, None
+    except smtplib.SMTPException as e:
+        print (e)
+        return None, e
+    finally:
+        server.close()

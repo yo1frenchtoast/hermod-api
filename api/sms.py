@@ -17,11 +17,13 @@ def send(dest, message):
     phone = user['phone']
     account = user['sms_account']
 
-    result = client.post('/sms/'+account+'/jobs',
-        message=message,
-        receivers=[phone],
-        senderForResponse=True
-    )
-
-    return result
-
+    try:
+        result = client.post('/sms/'+account+'/jobs',
+            message=message,
+            receivers=[phone],
+            senderForResponse=True
+        )
+        return result, None
+    except ovh.exceptions.APIError as e:
+        print (e)
+        return None, e

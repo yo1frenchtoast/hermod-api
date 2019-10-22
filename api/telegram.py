@@ -9,7 +9,10 @@ def send(dest, message):
     chatid = user['telegrambot_chatid']
 
     url = 'https://api.telegram.org/bot'+token+'/sendMessage?chat_id='+str(chatid)+'&text='+urllib.parse.quote(message)
-    result = requests.get(url)
 
-    return result.status_code
-
+    try:
+        result = requests.get(url)
+        return result.status_code, None
+    except requests.exceptions.RequestException as e:
+        print (e)
+        return None, e

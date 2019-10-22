@@ -17,7 +17,6 @@ def dump(table):
     except mysql.connector.Error as e:
         print (e)
         return None, e.msg
-
     finally:
         cursor.close()
         connection.close()
@@ -38,7 +37,6 @@ def select(table, element):
     except mysql.connector.Error as e:
         print (e)
         return None, e.msg
-
     finally:
         cursor.close()
         connection.close()
@@ -59,7 +57,6 @@ def insert(table, data):
     except mysql.connector.Error as e:
         print (e)
         return None, e.msg
-
     finally:
         cursor.close()
         connection.close()
@@ -105,8 +102,6 @@ def update(table, element, data):
     except mysql.connector.Error as e:
         print (e)
         return None, e.msg
-
     finally:
         cursor.close()
         connection.close()
-
