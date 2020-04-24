@@ -34,7 +34,7 @@ services:
     env_file:
       - .env
     deploy:
-      replicas: 3
+      replicas: 1
 
   web:
     image: 127.0.0.1:5000/hermod-api
@@ -52,3 +52,5 @@ services:
       - 9090:9090
   # cap_add:
     # - SYS_PTRACE
+  # deploy:
+    # replicas: 1

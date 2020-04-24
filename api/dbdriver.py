@@ -46,12 +46,15 @@ def insert(table, data):
     cursor = connection.cursor()
 
     columns = ', '.join(data.keys())
-    placeholders = ', '.join(["%s"]*len(data))
+    values = ''
+    for key in data.keys():
+        values += "\"{}\", ".format(data[key])
+    values = values[:-2]
 
-    query = "INSERT INTO {}({}) VALUES ({})".format(table, columns, placeholders)
+    query = "INSERT INTO {}({}) VALUES ({})".format(table, columns, values)
 
     try:
-        cursor.execute(query, data.values())
+        cursor.execute(query)
         connection.commit()
         return "Data inserted successfully", None
     except mysql.connector.Error as e:
