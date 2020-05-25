@@ -1,10 +1,10 @@
-FROM python:3.7
+FROM python:3.7-slim
 
 WORKDIR /usr/src/app
 
 COPY . .
 
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 ENV API_HOST="0.0.0.0" \
   API_PORT="9090" \
